@@ -7,29 +7,66 @@
         <script src="../g.raphael.js" type="text/javascript"></script>
         <script src="../g.line.js" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript" charset="utf-8">window.onload = function () {
+if (!Raphael.type) {
+	window.holder.innerHTML = 'Unfortunately your browser is a piece of old shit. Sorry.';
+	return;
+}
+
+var scaleToText = [
+	'One One One One One One',
+	'Two Two Two Two Two Two Two',
+	'Three',
+	'Four',
+	'Five Five Five Five Five Five Five',
+];
+
+var gcd = function(a,b) { return (!b)?a:gcd(b,a%b); };
+
 var r = Raphael("holder");
+this.r = r;
 var lines = r.linechart(
-	10, 10, 580, 350,
-	[[0, 1, 2, 3, 4, 5, 6, 7]], [[-10, 20, 30, 20, 10, 20, 10, 0]],
+	50, 10, 500, 350,
+	[[0, 1, 2, 3, 4]], [[-10, 20, 30, 20, 10]],
 	{
 		symbol: "circle",
-		axisxstep: 7,
-		axisystep: 10,
+		axisxstep: 4,
+		axisystep: 8,
 		axis: "0 0 1 1",
 		smooth: true
 	});
 
-lines.symbols.attr({ r: 12 });
-lines.lines[0].animate({"stroke-width": 6}, 1000);
-lines.symbols[0].attr({stroke: "#f00"});
-lines.symbols[0][1].animate({fill: "#f00"}, 1000);
-
 var items = lines.axis[0].text.items;
+var maxWidth = (550)/scaleToText.length;
+console.log(maxWidth);
 for (var i = 0, iMax = items.length; i<iMax; i++) {
-	var label = items[i];
-	label.rotate(-45);
-	label.attr({'text': "LAbel " + i});
+	fitWidth(items[i], scaleToText[i], maxWidth);
 }
+
+function fitWidth(label, text, maxWidth) {
+	var words = text.split(' ');
+	var add = '';
+	for (var i=words.length; i > 0; i--) {
+		var current = words.join(' ') + add;
+		label.attr('text', current);
+		if (i == 0 || maxWidth > label.getBBox().width) {
+			console.log(maxWidth, current, label.getBBox().width);
+			return;
+		}
+		add = '...';
+		words.splice(-1, 1);
+	}
+}
+
+lines.hoverColumn(function () {
+	this.tags = r.set();
+	var tagAngle = this.next === null ? 185 : 5;
+	var tag = r.tag(this.x, this.y[0], scaleToText[this.axis] + ', ' + this.values[0], tagAngle, 6)
+		.insertBefore(this)
+		.attr([{fill: "#fff" }, {fill: "#000"}])
+	this.tags.push(tag);
+}, function () {
+	this.tags && this.tags.remove();
+});
 
 };</script>
     </head>
