@@ -6,6 +6,30 @@
         <script src="../raphael-min.js" type="text/javascript" charset="utf-8"></script>
         <script src="../g.raphael.js" type="text/javascript"></script>
         <script src="../g.line.js" type="text/javascript" charset="utf-8"></script>
+        <script type='text/javascript' src='http://wp-testing.dev/wp/wp-includes/js/jquery/jquery.js?ver=1.11.1'></script>
+<script type='text/javascript'>
+jQuery(document).ready(function($) {
+	var lastWidth = 0;
+	var holder = $('#autosizer');
+	var GOLDEN_RATIO = 1.618033988749895;
+	
+	function goldenHeight(width) {
+		return Math.round(width/GOLDEN_RATIO);
+	}
+	
+	function resizeMe() {
+		var currentWidth = holder.width();
+		if (currentWidth == lastWidth) {
+			return;
+		}
+		console.log('resize');
+		lastWidth = currentWidth;
+		holder.height(goldenHeight(lastWidth));
+	}
+	resizeMe();
+	$(window).resize(resizeMe);
+});
+</script>
 <script type="text/javascript" charset="utf-8">window.onload = function () {
 if (!Raphael.type) {
 	window.holder.innerHTML = 'Unfortunately your browser is a piece of old shit. Sorry.';
@@ -83,5 +107,6 @@ lines.hoverColumn(function () {
     </head>
     <body style="background: gainsboro">
         <div id="holder" style="width: 600px; height: 370px; background: white;"></div>
+        <div id="autosizer" style="width: 50%; min-width: 500px; max-width: 700px; height: 10px; background: green;"></div>
     </body>
 </html>
