@@ -19,15 +19,25 @@ var scaleToText = [
 	'Four',
 	'Five Five Five Five Five Five Five',
 ];
+var scaleToAngle = [
+	90 * 0,
+	90 * 0,
+	90 * 0,
+	90 * 2,
+	90 * 2,
+];
 
 var gcd = function(a,b) { return (!b)?a:gcd(b,a%b); };
 
 var r = Raphael("holder");
 this.r = r;
 var lines = r.linechart(
-	50, 10, 500, 350,
+	0, 0, 600, 370,
 	[[0, 1, 2, 3, 4]], [[-10, 20, 30, 20, 10]],
 	{
+		gutter: 600/scaleToText.length/2,
+		dash: '-',
+		colors: ['#ccc'],
 		symbol: "circle",
 		axisxstep: 4,
 		axisystep: 8,
@@ -36,8 +46,7 @@ var lines = r.linechart(
 	});
 
 var items = lines.axis[0].text.items;
-var maxWidth = (550)/scaleToText.length;
-console.log(maxWidth);
+var maxWidth = (600)/scaleToText.length - 10;
 for (var i = 0, iMax = items.length; i<iMax; i++) {
 	fitWidth(items[i], scaleToText[i], maxWidth);
 }
@@ -49,7 +58,6 @@ function fitWidth(label, text, maxWidth) {
 		var current = words.join(' ') + add;
 		label.attr('text', current);
 		if (i == 0 || maxWidth > label.getBBox().width) {
-			console.log(maxWidth, current, label.getBBox().width);
 			return;
 		}
 		add = '...';
@@ -57,10 +65,13 @@ function fitWidth(label, text, maxWidth) {
 	}
 }
 
+lines.eachColumn(function() {
+	this.symbols.attr({fill: Raphael.getColor(0.8)})
+})
+
 lines.hoverColumn(function () {
 	this.tags = r.set();
-	var tagAngle = this.next === null ? 185 : 5;
-	var tag = r.tag(this.x, this.y[0], scaleToText[this.axis] + ', ' + this.values[0], tagAngle, 6)
+	var tag = r.tag(this.x, this.y[0], scaleToText[this.axis] + '\n' + this.values[0], scaleToAngle[this.axis], 6)
 		.insertBefore(this)
 		.attr([{fill: "#fff" }, {fill: "#000"}])
 	this.tags.push(tag);
