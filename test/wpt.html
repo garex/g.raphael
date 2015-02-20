@@ -8,14 +8,16 @@
         <script src="../g.line.js" type="text/javascript" charset="utf-8"></script>
         <script type='text/javascript' src='http://wp-testing.dev/wp/wp-includes/js/jquery/jquery.js?ver=1.11.1'></script>
 <script type='text/javascript'>
+var GOLDEN_RATIO = 1.618033988749895;
+
+function goldenHeight(width) {
+	return Math.round(width/GOLDEN_RATIO);
+}
+
 jQuery(document).ready(function($) {
 	var lastWidth = 0;
 	var holder = $('#autosizer');
-	var GOLDEN_RATIO = 1.618033988749895;
-	
-	function goldenHeight(width) {
-		return Math.round(width/GOLDEN_RATIO);
-	}
+
 	
 	function resizeMe() {
 		var currentWidth = holder.width();
@@ -30,49 +32,67 @@ jQuery(document).ready(function($) {
 	$(window).resize(resizeMe);
 });
 </script>
-<script type="text/javascript" charset="utf-8">window.onload = function () {
+<script type="text/javascript" charset="utf-8">jQuery(document).ready(function($) {
 if (!Raphael.type) {
 	window.holder.innerHTML = 'Unfortunately your browser is a piece of old shit. Sorry.';
 	return;
 }
 
-var scaleToText = [
-	'One One One One One One',
-	'Two Two Two Two Two Two Two',
-	'Three',
-	'Four',
-	'Five Five Five Five Five Five Five',
+var scales = [
+	{label: 'One One One One One One', 				value: 10},
+	{label: 'Two Two Two Two Two Two Two', 			value: 20},
+	{label: 'Three', 								value: 30},
+	{label: 'Four', 								value: 20},
+	{label: 'Five Five Five Five Five Five Five', 	value: 10}
 ];
-var scaleToAngle = [
-	90 * 0,
-	90 * 0,
-	90 * 0,
-	90 * 2,
-	90 * 2,
-];
+
+var dataX = [],
+	dataY = [];
+
+for (var i=0, iMax = scales.length, middle = Math.ceil(iMax/2); i < iMax; i++) {
+	scales[i].angle = 90 * (((i+1) <= middle) ? 0 : 2);
+	dataX.push(i);
+	dataY.push(scales[i].value);
+}
 
 var gcd = function(a,b) { return (!b)?a:gcd(b,a%b); };
 
+var holder = $('#holder');
+var width = holder.width();
+holder.height(goldenHeight(width));
+
 var r = Raphael("holder");
 this.r = r;
+
+
 var lines = r.linechart(
-	0, 0, 600, 370,
-	[[0, 1, 2, 3, 4]], [[-10, 20, 30, 20, 10]],
+	0, 0, width, goldenHeight(width),
+	[dataX, [0,0]], [dataY, [0, 50]],
 	{
-		gutter: 600/scaleToText.length/2,
+		gutter: 30,
 		dash: '-',
-		colors: ['#ccc'],
+		colors: ['#888'],
 		symbol: "circle",
-		axisxstep: 4,
-		axisystep: 8,
+		axisxstep: scales.length - 1,
 		axis: "0 0 1 1",
 		smooth: true
 	});
 
 var items = lines.axis[0].text.items;
-var maxWidth = (600)/scaleToText.length - 10;
-for (var i = 0, iMax = items.length; i<iMax; i++) {
-	fitWidth(items[i], scaleToText[i], maxWidth);
+var columnGutter = 10;
+var maxWidth = width/scales.length - columnGutter;
+for (var i = 0, iMax = items.length, iLast = iMax - 1; i<iMax; i++) {
+	var align   = 'middle',
+		divisor = 1;
+	if (i == 0) {
+		align 	= 'start';
+		divisor = 2;
+	} else if (i == iLast) {
+		align 	= 'end';
+		divisor = 2;
+	}
+	items[i].attr('text-anchor', align);
+	fitWidth(items[i], scales[i].label, maxWidth/divisor);
 }
 
 function fitWidth(label, text, maxWidth) {
@@ -89,13 +109,19 @@ function fitWidth(label, text, maxWidth) {
 	}
 }
 
+lines.symbols[1].remove();
+
 lines.eachColumn(function() {
+	/*var isBorder = (this.axis == 0 || this.axis == (items.length - 1));
+	if (isBorder) {
+		this.symbols.remove(); return;
+	}*/
 	this.symbols.attr({fill: Raphael.getColor(0.8)})
 })
 
 lines.hoverColumn(function () {
 	this.tags = r.set();
-	var tag = r.tag(this.x, this.y[0], scaleToText[this.axis] + '\n' + this.values[0], scaleToAngle[this.axis], 6)
+	var tag = r.tag(this.x, this.y[0], scales[this.axis].label + '\n' + this.values[0], scales[this.axis].angle, 6)
 		.insertBefore(this)
 		.attr([{fill: "#fff" }, {fill: "#000"}])
 	this.tags.push(tag);
@@ -103,10 +129,11 @@ lines.hoverColumn(function () {
 	this.tags && this.tags.remove();
 });
 
-};</script>
+});</script>
     </head>
     <body style="background: gainsboro">
-        <div id="holder" style="width: 600px; height: 370px; background: white;"></div>
+        <div id="holder" style="width: 60%; background: white;"></div>
+        <hr>
         <div id="autosizer" style="width: 50%; min-width: 500px; max-width: 700px; height: 10px; background: green;"></div>
     </body>
 </html>
