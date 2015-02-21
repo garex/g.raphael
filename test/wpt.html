@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <title>gRaphaël Line Charts</title>
         <script src="../raphael-min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../scale.raphael.js" type="text/javascript" charset="utf-8"></script>
         <script src="../g.raphael.js" type="text/javascript"></script>
         <script src="../g.line.js" type="text/javascript" charset="utf-8"></script>
         <script type='text/javascript' src='http://wp-testing.dev/wp/wp-includes/js/jquery/jquery.js?ver=1.11.1'></script>
@@ -57,12 +58,31 @@ for (var i=0, iMax = scales.length, middle = Math.ceil(iMax/2); i < iMax; i++) {
 
 var gcd = function(a,b) { return (!b)?a:gcd(b,a%b); };
 
+
+var holderWrapper = $('#holderwrapper');
+holderWrapper.height(goldenHeight(holderWrapper.width()));
+
 var holder = $('#holder');
 var width = holder.width();
 holder.height(goldenHeight(width));
 
-var r = Raphael("holder");
+
+var r = new ScaleRaphael("holder", width, holder.height());
 this.r = r;
+
+var lastWidth = 0;
+function resizeMe() {
+	var currentWidth = holderWrapper.width();
+	if (currentWidth == lastWidth) {
+		return;
+	}
+	console.log('resize2');
+	lastWidth = currentWidth;
+	holderWrapper.height(goldenHeight(lastWidth));
+	r.changeSize(currentWidth, holderWrapper.height());
+}
+resizeMe();
+$(window).resize(resizeMe);
 
 
 var lines = r.linechart(
@@ -93,6 +113,18 @@ for (var i = 0, iMax = items.length, iLast = iMax - 1; i<iMax; i++) {
 	}
 	items[i].attr('text-anchor', align);
 	fitWidth(items[i], scales[i].label, maxWidth/divisor);
+}
+
+
+for( var i = 0, l = lines.axis.length; i < l; i++ ) {
+  // change the axis and tick-marks 
+  lines.axis[i].attr("stroke", "#999999");
+               
+  // change the axis labels 
+  var axisItems = lines.axis[i].text.items
+  for( var ii = 0, ll = axisItems.length; ii < ll; ii++ ) {
+     axisItems[ii].attr("fill", "#999999");
+  }
 }
 
 function fitWidth(label, text, maxWidth) {
@@ -132,7 +164,7 @@ lines.hoverColumn(function () {
 });</script>
     </head>
     <body style="background: gainsboro">
-        <div id="holder" style="width: 60%; background: white;"></div>
+    	<div id="holderwrapper" style="width: 60%; background: white;"><div id="holder"></div></div>
         <hr>
         <div id="autosizer" style="width: 50%; min-width: 500px; max-width: 700px; height: 10px; background: green;"></div>
     </body>
